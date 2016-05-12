@@ -4,6 +4,7 @@ import java.net.URL;
 import java.util.List;
 import java.util.ResourceBundle;
 
+import it.polito.porto.model.Article;
 import it.polito.porto.model.Creator;
 import it.polito.porto.model.PortoModel;
 import javafx.event.ActionEvent;
@@ -34,6 +35,9 @@ public class PortoController {
 
     @FXML
     private Button btnArticles;
+    
+    @FXML
+    private Button btnReset;
 
     @FXML
     private TextArea txtResult;
@@ -47,15 +51,47 @@ public class PortoController {
     	boxAuthor1.getItems().addAll(model.getGraph().vertexSet());
     	boxAuthor2.getItems().addAll(model.getGraph().vertexSet());
     }
+    
+    @FXML
+    void doReset(ActionEvent event) {
+    	boxAuthor1.setValue(null);
+    	boxAuthor2.setValue(null);
+    	txtResult.clear();
+    }
 
     @FXML
     void doCluster(ActionEvent event) {
-
+    	txtResult.clear();
+    	//Prima di tutto controllo che non sia selezionato alcun autore dai menu a tendina
+    	if(boxAuthor1.getValue() == null && boxAuthor2.getValue() == null){
+    		//TODO cluster
+    	}
+    	else{
+    		txtResult.setText("Si prega di non selezionare alcun autore dai menu a tendina per ricercare i cluster.");
+    		return;
+    	}
     }
 
     @FXML
     void doFindArticles(ActionEvent event) {
-
+    	txtResult.clear();
+    	//Prima di tutto controllo che siano selezionati entrambi gli autori dai menu a tendina
+    	if(boxAuthor1.getValue() != null && boxAuthor2.getValue() != null){
+    		List<Article> articles = model.findArticles(boxAuthor1.getValue(), boxAuthor2.getValue());
+    		if(articles.isEmpty()){
+    			txtResult.setText("Non esiste alcun articolo che colleghi i due autori selezionati");
+    		}
+    		else{
+    			txtResult.setText(String.format("Articoli in comune tra %s e %s:\n\n", boxAuthor1.getValue(), boxAuthor2.getValue()));
+    			for(Article a : articles){
+    				txtResult.appendText(a.toString()+"\n");
+    			}
+    		}
+    	}
+    	else{
+    		txtResult.setText("Si prega di selezionare entrambi gli autori dai menu a tendina per ricercare gli articoli.");
+    		return;
+    	}
     }
 
     @FXML
@@ -80,6 +116,7 @@ public class PortoController {
     		return;
     	}
     	//Stampo lista coautori
+    	txtResult.setText(String.format("Coautori di %s:\n\n", boxAuthor1.getValue()));
     	for(Creator c : result){
     		txtResult.appendText(c.toString()+"\n");
     	}
@@ -93,6 +130,6 @@ public class PortoController {
         assert btnCluster != null : "fx:id=\"btnCluster\" was not injected: check your FXML file 'Porto.fxml'.";
         assert btnArticles != null : "fx:id=\"btnArticles\" was not injected: check your FXML file 'Porto.fxml'.";
         assert txtResult != null : "fx:id=\"txtResult\" was not injected: check your FXML file 'Porto.fxml'.";
-
+        assert btnReset != null : "fx:id=\"btnReset\" was not injected: check your FXML file 'Porto.fxml'.";
     }
 }

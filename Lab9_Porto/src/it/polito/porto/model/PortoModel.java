@@ -85,8 +85,14 @@ public class PortoModel {
 		}
 		return singleCoauthors;
 	}
-	
-	
+
+	public List<Article> findArticles(Creator c1, Creator c2){
+		List<Article> articlesInCommon = new ArrayList<Article>();
+		if(graph.containsEdge(c1, c2)){
+			articlesInCommon.add(graph.getEdge(c1, c2).getArticle());
+		}
+		return articlesInCommon;
+	}
 	
 	/*public static void main(String args[]){
 		PortoModel m = new PortoModel();
