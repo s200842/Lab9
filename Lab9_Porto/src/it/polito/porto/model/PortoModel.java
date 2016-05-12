@@ -1,5 +1,6 @@
 package it.polito.porto.model;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.jgrapht.Graphs;
@@ -14,6 +15,10 @@ public class PortoModel {
 	private List<Authorship> authorships;
 	private PortoDAO dao;
 	private Multigraph<Creator, ArticleEdge> graph;
+	
+	public Multigraph<Creator, ArticleEdge> getGraph() {
+		return graph;
+	}
 	
 	public PortoModel(){
 		//Inizializzo le liste di autori e articoli
@@ -70,8 +75,15 @@ public class PortoModel {
 		
 	}
 
-	public Multigraph<Creator, ArticleEdge> getGraph() {
-		return graph;
+	public List<Creator> findCoauthors(Creator c){
+		List<Creator> list = Graphs.neighborListOf(graph, c);
+		List<Creator> singleCoauthors = new ArrayList<Creator>();
+		for(Creator c1 : list){
+			if(!singleCoauthors.contains(c1)){
+				singleCoauthors.add(c1);
+			}
+		}
+		return singleCoauthors;
 	}
 	
 	

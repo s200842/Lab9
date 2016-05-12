@@ -15,7 +15,7 @@ public class Main extends Application {
 			FXMLLoader loader = new FXMLLoader(getClass().getResource("Porto.fxml"));
 			BorderPane root = (BorderPane)loader.load();
 			
-			Scene scene = new Scene(root,429,329);
+			Scene scene = new Scene(root,428,400);
 			scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
 			primaryStage.setScene(scene);
 			primaryStage.show();

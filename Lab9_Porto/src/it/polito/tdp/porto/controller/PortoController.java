@@ -1,6 +1,7 @@
 package it.polito.tdp.porto.controller;
 
 import java.net.URL;
+import java.util.List;
 import java.util.ResourceBundle;
 
 import it.polito.porto.model.Creator;
@@ -59,7 +60,29 @@ public class PortoController {
 
     @FXML
     void doFindCoauthors(ActionEvent event) {
-
+    	txtResult.clear();
+    	List<Creator> result = null;
+    	//Prima di tutto controllo che sia selezionato un solo autore dai menu a tendina
+    	if((boxAuthor1.getValue() == null && boxAuthor2.getValue() == null) || (boxAuthor1.getValue() != null && boxAuthor2.getValue() != null)){
+    		txtResult.setText("Si prega di selezionare un solo autore dai menu a tendina per ricercare i coautori.");
+    		return;
+    	}
+    	//Controllo da che box prendere l'autore
+    	if(boxAuthor1.getValue() != null){
+    		result = model.findCoauthors(boxAuthor1.getValue());
+    	}
+    	else{
+    		result = model.findCoauthors(boxAuthor2.getValue());
+    	}
+    	//Controllo che la lista non sia vuota
+    	if(result.isEmpty()){
+    		txtResult.setText("Nessun coautore trovato.");
+    		return;
+    	}
+    	//Stampo lista coautori
+    	for(Creator c : result){
+    		txtResult.appendText(c.toString()+"\n");
+    	}
     }
 
     @FXML
