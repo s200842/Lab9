@@ -2,8 +2,10 @@ package it.polito.porto.model;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import org.jgrapht.Graphs;
+import org.jgrapht.alg.ConnectivityInspector;
 import org.jgrapht.graph.Multigraph;
 
 import it.polito.porto.db.PortoDAO;
@@ -93,7 +95,11 @@ public class PortoModel {
 		}
 		return articlesInCommon;
 	}
-	
+
+	public List<Set<Creator>> findCluster(){
+		ConnectivityInspector<Creator, ArticleEdge> ci = new ConnectivityInspector<Creator, ArticleEdge>(graph);
+		return ci.connectedSets();
+	}
 	/*public static void main(String args[]){
 		PortoModel m = new PortoModel();
 		//System.out.println(m.authors);

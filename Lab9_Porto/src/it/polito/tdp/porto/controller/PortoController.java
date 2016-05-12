@@ -3,6 +3,7 @@ package it.polito.tdp.porto.controller;
 import java.net.URL;
 import java.util.List;
 import java.util.ResourceBundle;
+import java.util.Set;
 
 import it.polito.porto.model.Article;
 import it.polito.porto.model.Creator;
@@ -64,7 +65,16 @@ public class PortoController {
     	txtResult.clear();
     	//Prima di tutto controllo che non sia selezionato alcun autore dai menu a tendina
     	if(boxAuthor1.getValue() == null && boxAuthor2.getValue() == null){
-    		//TODO cluster
+    		List<Set<Creator>> res = model.findCluster();
+    		int i = 1;
+    		for(Set<Creator> set : res){
+    			txtResult.appendText("---Cluster "+i+" ---\n");
+    			for(Creator c : set){
+    				txtResult.appendText(c.toString()+"\n");
+    			}
+    			i ++;
+    			txtResult.appendText("\n");
+    		}
     	}
     	else{
     		txtResult.setText("Si prega di non selezionare alcun autore dai menu a tendina per ricercare i cluster.");
