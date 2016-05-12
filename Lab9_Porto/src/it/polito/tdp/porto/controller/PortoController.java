@@ -3,6 +3,7 @@ package it.polito.tdp.porto.controller;
 import java.net.URL;
 import java.util.ResourceBundle;
 
+import it.polito.porto.model.Creator;
 import it.polito.porto.model.PortoModel;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -19,10 +20,10 @@ public class PortoController {
     private URL location;
 
     @FXML
-    private ComboBox<?> boxAuthor1;
+    private ComboBox<Creator> boxAuthor1;
 
     @FXML
-    private ComboBox<?> boxAuthor2;
+    private ComboBox<Creator> boxAuthor2;
 
     @FXML
     private Button btnCoauthor;
@@ -40,6 +41,10 @@ public class PortoController {
     
     public void setModel(PortoModel model){
     	this.model = model;
+    	model.generateGraph();
+    	System.out.println("Grafo caricato con successo!");
+    	boxAuthor1.getItems().addAll(model.getGraph().vertexSet());
+    	boxAuthor2.getItems().addAll(model.getGraph().vertexSet());
     }
 
     @FXML
