@@ -1,7 +1,10 @@
 package it.polito.porto.model;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 import java.util.Set;
 
 import org.jgrapht.Graphs;
@@ -17,6 +20,7 @@ public class PortoModel {
 	private List<Authorship> authorships;
 	private PortoDAO dao;
 	private Multigraph<Creator, ArticleEdge> graph;
+	
 	
 	public Multigraph<Creator, ArticleEdge> getGraph() {
 		return graph;
@@ -66,9 +70,12 @@ public class PortoModel {
 					for(Article a : c1.getArticles()){
 						//.. per ogni articolo che hanno in comune..
 						if(c2.getArticles().contains(a)){
-							//Creo un arco che collega i due autori contenente info sull'articolo scritto
-							graph.addEdge(c1, c2);
-							graph.getEdge(c1, c2).setArticle(a);
+							//Creo un arco che collega i due autori contenente info sull'articolo scritto se non esiste già
+							if(!graph.containsEdge(c2, c1)){
+								graph.addEdge(c1, c2);
+								graph.getEdge(c1, c2).setArticle(a);
+							}
+							
 						}
 					}
 				}
@@ -88,17 +95,45 @@ public class PortoModel {
 		return singleCoauthors;
 	}
 
-	public List<Article> findArticles(Creator c1, Creator c2){
-		List<Article> articlesInCommon = new ArrayList<Article>();
-		if(graph.containsEdge(c1, c2)){
-			articlesInCommon.add(graph.getEdge(c1, c2).getArticle());
-		}
-		return articlesInCommon;
+	public Set<Article> findArticles(Creator c1, Creator c2){
+		//Devo trovare TUTTI gli archi che collegano i due autori MA NON quelli diretti -> Visita in ampiezza
+		Multigraph<Creator, ArticleEdge> graph2 = graph;
+		//Rimuovo gli archi tra i due autori in modo da non avere coautori
+		graph2.removeAllEdges(c1, c2);
+		return bfv(c1, c2, graph2);
 	}
 
 	public List<Set<Creator>> findCluster(){
 		ConnectivityInspector<Creator, ArticleEdge> ci = new ConnectivityInspector<Creator, ArticleEdge>(graph);
 		return ci.connectedSets();
+	}
+
+	public Set<Article> bfv(Creator start, Creator end, Multigraph<Creator, ArticleEdge> g){
+		Set<Creator> visited = new HashSet<Creator>();
+		Set<Article> art = new HashSet<Article>();
+		//Creo una coda contenente i vertici su cui devo andare
+		Queue<Creator> q = new LinkedList<Creator>();
+		q.add(start);
+		while(!q.isEmpty()){
+			Creator c = q.remove();
+			//Se non ho ancora visitato quel nodo, lo aggiungo alla coda per non uscire dal while
+			if(!visited.contains(c)){
+				visited.add(c);
+				for(Creator c2 : Graphs.neighborListOf(g, c)){
+					if(g.degreeOf(c2)>1){
+						q.add(c2);
+						for(ArticleEdge ae : g.getAllEdges(c, c2)){
+							art.add(ae.getArticle());
+						}
+					}
+					
+				}
+			}
+		}
+		if(visited.contains(end)){
+			return art;
+		}
+		else return null;
 	}
 	/*public static void main(String args[]){
 		PortoModel m = new PortoModel();

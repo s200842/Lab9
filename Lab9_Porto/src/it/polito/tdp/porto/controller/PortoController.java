@@ -87,12 +87,12 @@ public class PortoController {
     	txtResult.clear();
     	//Prima di tutto controllo che siano selezionati entrambi gli autori dai menu a tendina
     	if(boxAuthor1.getValue() != null && boxAuthor2.getValue() != null){
-    		List<Article> articles = model.findArticles(boxAuthor1.getValue(), boxAuthor2.getValue());
-    		if(articles.isEmpty()){
+    		Set<Article> articles = model.findArticles(boxAuthor1.getValue(), boxAuthor2.getValue());
+    		if(articles == null || articles.isEmpty()){
     			txtResult.setText("Non esiste alcun articolo che colleghi i due autori selezionati");
     		}
     		else{
-    			txtResult.setText(String.format("Articoli in comune tra %s e %s:\n\n", boxAuthor1.getValue(), boxAuthor2.getValue()));
+    			txtResult.setText(String.format("Articoli (archi) totali che collegano %s e %s:\n\nTrovati %d\n\n", boxAuthor1.getValue(), boxAuthor2.getValue(), articles.size()));
     			for(Article a : articles){
     				txtResult.appendText(a.toString()+"\n");
     			}
@@ -114,11 +114,14 @@ public class PortoController {
     		return;
     	}
     	//Controllo da che box prendere l'autore
+    	ComboBox<Creator> box = null;
     	if(boxAuthor1.getValue() != null){
-    		result = model.findCoauthors(boxAuthor1.getValue());
+    		box = boxAuthor1;
+    		result = model.findCoauthors(box.getValue());
     	}
     	else{
-    		result = model.findCoauthors(boxAuthor2.getValue());
+    		box = boxAuthor2;
+    		result = model.findCoauthors(box.getValue());
     	}
     	//Controllo che la lista non sia vuota
     	if(result.isEmpty()){
@@ -126,7 +129,7 @@ public class PortoController {
     		return;
     	}
     	//Stampo lista coautori
-    	txtResult.setText(String.format("Coautori di %s:\n\n", boxAuthor1.getValue()));
+    	txtResult.setText(String.format("Coautori di %s:\n\n", box.getValue()));
     	for(Creator c : result){
     		txtResult.appendText(c.toString()+"\n");
     	}
