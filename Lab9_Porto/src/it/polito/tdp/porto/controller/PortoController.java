@@ -71,6 +71,7 @@ public class PortoController {
     			txtResult.appendText("---Cluster "+i+" ---\n");
     			for(Creator c : set){
     				txtResult.appendText(c.toString()+"\n");
+    				
     			}
     			i ++;
     			txtResult.appendText("\n");
@@ -89,12 +90,13 @@ public class PortoController {
     	if(boxAuthor1.getValue() != null && boxAuthor2.getValue() != null){
     		Set<Article> articles = model.findArticles(boxAuthor1.getValue(), boxAuthor2.getValue());
     		if(articles == null || articles.isEmpty()){
-    			txtResult.setText("Non esiste alcun articolo che colleghi i due autori selezionati");
+    			txtResult.setText("Non esiste alcun articolo che colleghi i due autori selezionati, oppure i due autori sono coautori di uno stesso articolo.");
     		}
     		else{
     			txtResult.setText(String.format("Articoli (archi) totali che collegano %s e %s:\n\nTrovati %d\n\n", boxAuthor1.getValue(), boxAuthor2.getValue(), articles.size()));
     			for(Article a : articles){
     				txtResult.appendText(a.toString()+"\n");
+    				System.out.println(a.getEprintid());
     			}
     		}
     	}

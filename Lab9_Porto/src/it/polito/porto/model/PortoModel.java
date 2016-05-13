@@ -1,14 +1,10 @@
 package it.polito.porto.model;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Queue;
-import java.util.Set;
+import java.util.*;
 
 import org.jgrapht.Graphs;
 import org.jgrapht.alg.ConnectivityInspector;
+import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.graph.Multigraph;
 
 import it.polito.porto.db.PortoDAO;
@@ -19,10 +15,10 @@ public class PortoModel {
 	private List<Article> articles;
 	private List<Authorship> authorships;
 	private PortoDAO dao;
-	private Multigraph<Creator, ArticleEdge> graph;
+	private Multigraph<Creator, DefaultEdge> graph;
 	
 	
-	public Multigraph<Creator, ArticleEdge> getGraph() {
+	public Multigraph<Creator, DefaultEdge> getGraph() {
 		return graph;
 	}
 	
@@ -32,7 +28,7 @@ public class PortoModel {
 		authors = dao.getAllCreators();
 		articles = dao.getAllArticles();
 		authorships = dao.getAllAutorships();
-		graph = new Multigraph<Creator, ArticleEdge>(ArticleEdge.class);
+		graph = new Multigraph<Creator, DefaultEdge>(DefaultEdge.class);
 		//Per ogni autore aggiungo gli articoli scritti
 		for(Creator c : authors){
 			for(Authorship a : authorships){
@@ -70,10 +66,9 @@ public class PortoModel {
 					for(Article a : c1.getArticles()){
 						//.. per ogni articolo che hanno in comune..
 						if(c2.getArticles().contains(a)){
-							//Creo un arco che collega i due autori contenente info sull'articolo scritto se non esiste già
+							//Creo un arco che collega i due autori
 							if(!graph.containsEdge(c2, c1)){
 								graph.addEdge(c1, c2);
-								graph.getEdge(c1, c2).setArticle(a);
 							}
 							
 						}
@@ -81,6 +76,7 @@ public class PortoModel {
 				}
 			}
 		}
+		System.out.println(graph.edgeSet().size());
 		
 	}
 
@@ -96,56 +92,47 @@ public class PortoModel {
 	}
 
 	public Set<Article> findArticles(Creator c1, Creator c2){
-		//Devo trovare TUTTI gli archi che collegano i due autori MA NON quelli diretti -> Visita in ampiezza
-		Multigraph<Creator, ArticleEdge> graph2 = graph;
-		//Rimuovo gli archi tra i due autori in modo da non avere coautori
-		graph2.removeAllEdges(c1, c2);
-		return bfv(c1, c2, graph2);
+		Set<Article> articlesInCommon = new HashSet<Article>();
+		//Controllo che non siano coautori
+		if(findCoauthors(c1).contains(c2)){
+			return null;
+		}
+		//Controllo che appartengano allo stesso cluster
+		for(Set<Creator> sc : findCluster()){
+			if(sc.contains(c1) && sc.contains(c2)){
+				//Appartengono allo stesso cluster, per cui posso avviare la ricerca dei percorsi
+				recursiveVisit(c1, c2, new ArrayList<Article>(), articlesInCommon, new ArrayList<Creator>());
+				return articlesInCommon;
+			}
+		}
+		return null;
 	}
-
-	public List<Set<Creator>> findCluster(){
-		ConnectivityInspector<Creator, ArticleEdge> ci = new ConnectivityInspector<Creator, ArticleEdge>(graph);
-		return ci.connectedSets();
-	}
-
-	public Set<Article> bfv(Creator start, Creator end, Multigraph<Creator, ArticleEdge> g){
-		Set<Creator> visited = new HashSet<Creator>();
-		Set<Article> art = new HashSet<Article>();
-		//Creo una coda contenente i vertici su cui devo andare
-		Queue<Creator> q = new LinkedList<Creator>();
-		q.add(start);
-		while(!q.isEmpty()){
-			Creator c = q.remove();
-			//Se non ho ancora visitato quel nodo, lo aggiungo alla coda per non uscire dal while
+	
+	public void recursiveVisit (Creator start, Creator target, List<Article> tempArtList, Set<Article> totalArticles, List<Creator> visited) {
+		List<Creator> neighbors = Graphs.neighborListOf(graph, start);
+		//Condizione di uscita: se il punto di partenza coincide con il punto di arrivo ho finito la ricerca
+		if(start.equals(target)){
+			//Aggiungi la lista di articoli a quella generale COPIANDO LA LISTA;
+			totalArticles.addAll(new ArrayList<Article>(tempArtList));
+			return;
+		}
+		for(Creator c : neighbors) {
 			if(!visited.contains(c)){
 				visited.add(c);
-				for(Creator c2 : Graphs.neighborListOf(g, c)){
-					if(g.degreeOf(c2)>1){
-						q.add(c2);
-						for(ArticleEdge ae : g.getAllEdges(c, c2)){
-							art.add(ae.getArticle());
-						}
+				for(Article aNeighbor : c.getArticles()){
+					if(start.getArticles().contains(aNeighbor)){
+						tempArtList.add(aNeighbor);
+						recursiveVisit(c, target, tempArtList, totalArticles, visited);
 					}
-					
 				}
 			}
 		}
-		if(visited.contains(end)){
-			return art;
-		}
-		else return null;
 	}
-	/*public static void main(String args[]){
-		PortoModel m = new PortoModel();
-		//System.out.println(m.authors);
-		/*for(Article a : m.articles){
-			System.out.print(a.getTitle()+", ");
-		}
-		System.out.println(m.authors.get(0));
-		System.out.println(m.authors.get(0).getArticles());
-		System.out.println(m.articles.get(0));
-		System.out.println(m.articles.get(0).getAuthors());
-		
-	}*/
+
+	public List<Set<Creator>> findCluster(){
+		ConnectivityInspector<Creator, DefaultEdge> ci = new ConnectivityInspector<Creator, DefaultEdge>(graph);
+		return ci.connectedSets();
+	}
+
 	
 }
